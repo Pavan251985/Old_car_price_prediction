@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AutoValue — Car Price Predictor</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#0a0a0c; --bg2:#111115; --bg3:#18181f;
+  --border:rgba(255,255,255,0.07); --border2:rgba(255,149,0,0.35);
+  --amber:#ff9500; --amber2:#ffb340; --amber-dim:rgba(255,149,0,0.1);
+  --red:#ff3b30; --green:#30d158; --blue:#0a84ff;
+  --text:#f0f0f0; --text2:#8a8a9a; --text3:#3a3a4a;
+  --card:rgba(255,255,255,0.025); --card-h:rgba(255,255,255,0.05);
+  --radius:14px; --radius-lg:22px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Barlow',sans-serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; overflow-x:hidden;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,149,0,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,149,0,0.025) 1px,transparent 1px);
+  background-size:52px 52px;
+}
+body::after{
+  content:''; position:fixed;
+  top:-15%; left:50%; transform:translateX(-50%);
+  width:900px; height:500px; pointer-events:none; z-index:0;
+  background:radial-gradient(ellipse,rgba(255,149,0,0.055) 0%,transparent 68%);
+}
+
+.wrapper{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:0 24px 80px;}
+
+/* NAV */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:24px 0 18px;border-bottom:1px solid var(--border);margin-bottom:52px;
+}
+.nav-logo{
+  display:flex;align-items:center;gap:10px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1.5rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+}
+.logo-dot{
+  width:10px;height:10px;background:var(--amber);border-radius:50%;
+  box-shadow:0 0 12px var(--amber);
+  animation:pulse 2.2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{box-shadow:0 0 10px var(--amber);}50%{box-shadow:0 0 22px var(--amber),0 0 42px rgba(255,149,0,.28);}}
+
+.nav-right{display:flex;align-items:center;gap:12px;}
+.status-pill{
+  display:flex;align-items:center;gap:7px;
+  font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  padding:6px 14px;border-radius:20px;
+  background:rgba(48,209,88,.1);border:1px solid rgba(48,209,88,.3);color:var(--green);
+}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite;}
+
+/* HERO */
+.hero{margin-bottom:44px;animation:fadeUp .55s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+.hero-eyebrow{
+  font-size:.7rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--amber);margin-bottom:12px;display:flex;align-items:center;gap:9px;
+}
+.hero-eyebrow::before{content:'';display:block;width:22px;height:2px;background:var(--amber);}
+.hero h1{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:clamp(2.8rem,5.5vw,4.4rem);font-weight:800;
+  line-height:1;text-transform:uppercase;letter-spacing:.02em;margin-bottom:14px;
+}
+.hero h1 em{color:var(--amber);font-style:normal;}
+.hero p{font-size:.97rem;color:var(--text2);font-weight:300;max-width:460px;line-height:1.65;}
+
+/* STAT STRIP */
+.stat-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:12px;margin-bottom:44px;
+  animation:fadeUp .55s .08s ease both;
+}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px 20px;
+  transition:background .2s,border .2s;
+}
+.stat-card:hover{background:var(--card-h);border-color:var(--border2);}
+.stat-label{font-size:.68rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.stat-value{font-family:'Barlow Condensed',sans-serif;font-size:1.9rem;font-weight:800;line-height:1;}
+.stat-value.a{color:var(--amber);}
+.stat-sub{font-size:.7rem;color:var(--text2);margin-top:3px;}
+
+/* MAIN GRID */
+.main-grid{display:grid;grid-template-columns:1fr 370px;gap:20px;animation:fadeUp .55s .16s ease both;}
+
+/* FORM CARD */
+.form-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:30px;
+}
+.sec-title{
+  font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--text2);
+  margin-bottom:22px;display:flex;align-items:center;gap:10px;
+}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fg{display:flex;flex-direction:column;gap:7px;}
+.fg.full{grid-column:1/-1;}
+
+label{font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);}
+
+input[type=number],select,.car-search-input{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:9px;padding:11px 14px;
+  color:var(--text);font-family:'Barlow',sans-serif;font-size:.93rem;
+  outline:none;transition:border .2s,background .2s,box-shadow .2s;width:100%;
+  -webkit-appearance:none;
+}
+input[type=number]:focus,select:focus,.car-search-input:focus{
+  border-color:var(--amber);background:rgba(255,149,0,.045);
+  box-shadow:0 0 0 3px rgba(255,149,0,.07);
+}
+select option{background:#1a1a24;}
+
+/* Car name search dropdown */
+.car-search-wrap{position:relative;}
+.car-dropdown{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:99;
+  background:#1a1a24;border:1px solid var(--border2);border-radius:10px;
+  max-height:220px;overflow-y:auto;display:none;
+  box-shadow:0 16px 40px rgba(0,0,0,.6);
+}
+.car-dropdown.open{display:block;}
+.car-dropdown::-webkit-scrollbar{width:4px;}
+.car-dropdown::-webkit-scrollbar-thumb{background:var(--border2);border-radius:9px;}
+.car-option{
+  padding:10px 14px;font-size:.88rem;cursor:pointer;
+  transition:background .15s;border-bottom:1px solid var(--border);color:var(--text2);
+}
+.car-option:last-child{border-bottom:none;}
+.car-option:hover,.car-option.highlighted{background:var(--amber-dim);color:var(--amber);}
+.car-option mark{background:transparent;color:var(--amber);font-weight:700;}
+.selected-car-tag{
+  margin-top:7px;padding:7px 12px;border-radius:8px;
+  background:var(--amber-dim);border:1px solid var(--border2);
+  font-size:.82rem;color:var(--amber2);display:none;
+}
+
+/* Slider */
+.slider-row{display:flex;align-items:center;gap:12px;}
+.slider-val{
+  font-family:'Barlow Condensed',sans-serif;font-size:1.05rem;font-weight:700;
+  color:var(--amber);min-width:68px;text-align:right;white-space:nowrap;
+}
+input[type=range]{
+  padding:0;height:4px;cursor:pointer;flex:1;
+  background:linear-gradient(to right,var(--amber) 0%,var(--border) 0%);
+  border:none;border-radius:9px;-webkit-appearance:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:17px;height:17px;border-radius:50%;
+  background:var(--amber);box-shadow:0 0 8px rgba(255,149,0,.45);
+  cursor:pointer;border:2px solid var(--bg);
+}
+
+/* Toggles */
+.toggle-group{display:flex;gap:7px;flex-wrap:wrap;}
+.tp{
+  padding:8px 14px;border-radius:8px;border:1px solid var(--border);
+  background:transparent;color:var(--text2);font-family:'Barlow',sans-serif;
+  font-size:.84rem;font-weight:600;cursor:pointer;transition:all .15s;
+}
+.tp:hover{border-color:var(--border2);color:var(--amber2);}
+.tp.active{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+
+/* Predict btn */
+.predict-btn{
+  width:100%;margin-top:26px;padding:15px;
+  border-radius:12px;border:none;
+  background:linear-gradient(135deg,#ff9500,#ff6200);
+  color:#000;font-family:'Barlow Condensed',sans-serif;
+  font-size:1.05rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:0 4px 22px rgba(255,149,0,.22);
+}
+.predict-btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.18),transparent);
+  opacity:0;transition:opacity .2s;
+}
+.predict-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,149,0,.38);}
+.predict-btn:hover::after{opacity:1;}
+.predict-btn:active{transform:translateY(0);}
+.predict-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+/* RESULT PANEL */
+.result-panel{display:flex;flex-direction:column;gap:16px;}
+
+.price-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:26px;position:relative;overflow:hidden;
+}
+.price-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--amber),#ff6200);
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+/* Car name display */
+.result-car-name{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:1rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text2);margin-bottom:10px;min-height:1.2em;
+  transition:all .3s;
+}
+.result-car-name.filled{color:var(--amber2);}
+
+.price-tag-label{font-size:.66rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.price-display{
+  font-family:'Barlow Condensed',sans-serif;font-size:3rem;font-weight:800;
+  line-height:1;color:var(--amber);margin-bottom:4px;
+  text-shadow:0 0 40px rgba(255,149,0,.25);transition:all .4s;
+}
+.price-unit{font-size:.78rem;color:var(--text2);font-weight:500;margin-bottom:18px;}
+
+.meter-wrap{margin-bottom:14px;}
+.meter-labels{display:flex;justify-content:space-between;font-size:.68rem;color:var(--text2);margin-bottom:5px;}
+.meter-bar{height:6px;border-radius:9px;background:var(--bg3);overflow:hidden;}
+.meter-fill{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--green),var(--amber));width:0%;transition:width .85s cubic-bezier(.4,0,.2,1);}
+
+.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.ms{background:var(--bg3);border-radius:10px;padding:11px 13px;border:1px solid var(--border);}
+.ms-label{font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;}
+.ms-val{font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:800;}
+.ms-val.g{color:var(--green);} .ms-val.r{color:var(--red);} .ms-val.a{color:var(--amber);}
+
+/* Model perf card */
+.model-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:20px;
+}
+.model-row{
+  display:flex;align-items:center;gap:11px;
+  padding:9px 0;border-bottom:1px solid var(--border);
+}
+.model-row:last-child{border-bottom:none;padding-bottom:0;}
+.model-name{font-size:.8rem;font-weight:600;flex:0 0 130px;color:var(--text2);}
+.model-bar-bg{flex:1;height:4px;background:var(--bg3);border-radius:9px;overflow:hidden;}
+.model-bar{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--amber),#ff6200);}
+.model-r2{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:700;color:var(--amber2);min-width:44px;text-align:right;}
+
+/* Info */
+.info-card{
+  background:var(--amber-dim);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:14px 16px;
+}
+.info-card p{font-size:.8rem;color:var(--amber2);line-height:1.55;}
+.info-card strong{color:var(--amber);}
+
+/* FEATURE IMPORTANCE */
+.fi-section{
+  margin-top:18px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:26px;
+  animation:fadeUp .55s .22s ease both;
+}
+.fi-grid{display:flex;flex-direction:column;gap:11px;margin-top:18px;}
+.fi-row{display:flex;align-items:center;gap:13px;}
+.fi-name{font-size:.8rem;font-weight:600;min-width:135px;color:var(--text2);}
+.fi-bg{flex:1;height:7px;background:var(--bg3);border-radius:9px;overflow:hidden;}
+.fi-fill{height:100%;border-radius:9px;background:linear-gradient(90deg,var(--amber),#ff6200);width:0%;transition:width 1.1s cubic-bezier(.4,0,.2,1);}
+.fi-pct{font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700;color:var(--amber);min-width:40px;text-align:right;}
+
+/* Loading */
+.spinner{display:none;align-items:center;gap:9px;margin-top:14px;justify-content:center;}
+.spinner.on{display:flex;}
+.spin{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--amber);animation:spin .65s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Error */
+.err-msg{margin-top:10px;padding:10px 14px;border-radius:9px;background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.3);color:var(--red);font-size:.83rem;display:none;}
+.err-msg.on{display:block;}
+
+@media(max-width:900px){.main-grid{grid-template-columns:1fr;}.stat-strip{grid-template-columns:1fr 1fr;}}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr;}.stat-strip{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo"><div class="logo-dot"></div>AutoValue</div>
+  <div class="nav-right">
+    <div class="status-pill"><div class="status-dot"></div>Model Active</div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Random Forest · ONNX · Car Pricing Dataset</div>
+  <h1>Know Your Car's<br/><em>True Value</em></h1>
+  <p>Select your car model, enter details and get an instant AI-powered resale price — powered by your trained Random Forest model.</p>
+</div>
+
+<!-- STATS -->
+<div class="stat-strip">
+  <div class="stat-card"><div class="stat-label">Dataset</div><div class="stat-value a">301</div><div class="stat-sub">Car pricing records</div></div>
+  <div class="stat-card"><div class="stat-label">Car Models</div><div class="stat-value">138</div><div class="stat-sub">Unique variants</div></div>
+  <div class="stat-card"><div class="stat-label">Features</div><div class="stat-value a">152</div><div class="stat-sub">After OHE encoding</div></div>
+  <div class="stat-card"><div class="stat-label">Algorithm</div><div class="stat-value" style="font-size:1.3rem">RF</div><div class="stat-sub">Random Forest · ONNX</div></div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="main-grid">
+
+  <!-- LEFT: FORM -->
+  <div class="form-card">
+    <div class="sec-title">Car Details</div>
+    <div class="form-grid">
+
+      <!-- Car Name Search -->
+      <div class="fg full">
+        <label>Car Name & Variant</label>
+        <div class="car-search-wrap">
+          <input class="car-search-input" id="car_search" placeholder="Search — e.g. Maruti Swift, Honda City…" autocomplete="off"
+                 oninput="filterCars()" onkeydown="handleKey(event)" onfocus="openDropdown()" />
+          <div class="car-dropdown" id="car_dropdown"></div>
+        </div>
+        <div class="selected-car-tag" id="car_tag">—</div>
+        <input type="hidden" id="car_name" value=""/>
+      </div>
+
+      <!-- Present Price -->
+      <div class="fg">
+        <label>Showroom Price (100k INR)</label>
+        <input type="number" id="present_price" step="0.1" min="0.1" max="100" value="5.59" placeholder="e.g. 8.5"/>
+      </div>
+
+      <!-- Kms -->
+      <div class="fg">
+        <label>Kilometers Driven</label>
+        <input type="number" id="kms_driven" min="0" max="500000" value="27000" placeholder="e.g. 50000"/>
+      </div>
+
+      <!-- Year Slider -->
+      <div class="fg full">
+        <label>Purchase Year</label>
+        <div class="slider-row">
+          <input type="range" id="year_slider" min="2000" max="2024" value="2015" oninput="updateYear(this)"/>
+          <div class="slider-val" id="year_display">2015 · <span style="color:var(--text2);font-size:.7rem">Age 10</span></div>
+        </div>
+      </div>
+
+      <!-- Fuel -->
+      <div class="fg">
+        <label>Fuel Type</label>
+        <div class="toggle-group">
+          <button class="tp active" onclick="setT(this,'fuel')">Petrol</button>
+          <button class="tp" onclick="setT(this,'fuel')">Diesel</button>
+          <button class="tp" onclick="setT(this,'fuel')">CNG</button>
+        </div>
+        <input type="hidden" id="fuel_type" value="Petrol"/>
+      </div>
+
+      <!-- Transmission -->
+      <div class="fg">
+        <label>Transmission</label>
+        <div class="toggle-group">
+          <button class="tp active" onclick="setT(this,'trans')">Manual</button>
+          <button class="tp" onclick="setT(this,'trans')">Automatic</button>
+        </div>
+        <input type="hidden" id="transmission" value="Manual"/>
+      </div>
+
+      <!-- Seller -->
+      <div class="fg">
+        <label>Seller Type</label>
+        <div class="toggle-group">
+          <button class="tp active" onclick="setT(this,'seller')">Dealer</button>
+          <button class="tp" onclick="setT(this,'seller')">Individual</button>
+        </div>
+        <input type="hidden" id="seller_type" value="Dealer"/>
+      </div>
+
+      <!-- Owner -->
+      <div class="fg">
+        <label>Previous Owners</label>
+        <div class="toggle-group">
+          <button class="tp active" onclick="setT(this,'owner')">0</button>
+          <button class="tp" onclick="setT(this,'owner')">1</button>
+          <button class="tp" onclick="setT(this,'owner')">2</button>
+          <button class="tp" onclick="setT(this,'owner')">3</button>
+        </div>
+        <input type="hidden" id="owner" value="0"/>
+      </div>
+
+    </div>
+
+    <button class="predict-btn" id="predict_btn" onclick="predict()">⚡ Predict Resale Price</button>
+    <div class="spinner" id="spinner"><div class="spin"></div><span style="font-size:.83rem;color:var(--text2)">Running model…</span></div>
+    <div class="err-msg" id="err_msg"></div>
+  </div>
+
+  <!-- RIGHT: RESULTS -->
+  <div class="result-panel">
+
+    <div class="price-card">
+      <div class="result-car-name" id="result_car_name">Select a car above</div>
+      <div class="price-tag-label">Estimated Resale Value</div>
+      <div class="price-display" id="price_out">— —</div>
+      <div class="price-unit">INR (x 100,000)</div>
+
+      <div class="meter-wrap">
+        <div class="meter-labels"><span>Value Retention</span><span id="retention_pct">—</span></div>
+        <div class="meter-bar"><div class="meter-fill" id="retention_bar"></div></div>
+      </div>
+
+      <div class="mini-stats">
+        <div class="ms"><div class="ms-label">Showroom Price</div><div class="ms-val a" id="orig_price">—</div></div>
+        <div class="ms"><div class="ms-label">Depreciation</div><div class="ms-val r" id="depreciation">—</div></div>
+        <div class="ms"><div class="ms-label">Car Age</div><div class="ms-val a" id="car_age_out">—</div></div>
+        <div class="ms"><div class="ms-label">Price Range</div><div class="ms-val g" id="est_range">—</div></div>
+      </div>
+    </div>
+
+    <div class="model-card">
+      <div class="sec-title" style="margin-bottom:14px">Model</div>
+      <div class="model-row">
+        <div class="model-name">Random Forest</div>
+        <div class="model-bar-bg"><div class="model-bar" style="width:95%"></div></div>
+        <div class="model-r2">Active</div>
+      </div>
+      <div class="model-row" style="opacity:.4">
+        <div class="model-name">XGBoost</div>
+        <div class="model-bar-bg"><div class="model-bar" style="width:96.7%"></div></div>
+        <div class="model-r2">—</div>
+      </div>
+      <div class="model-row" style="opacity:.4">
+        <div class="model-name">Gradient Boost</div>
+        <div class="model-bar-bg"><div class="model-bar" style="width:94.1%"></div></div>
+        <div class="model-r2">—</div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <p><strong>🔑 Key insight:</strong> Showroom price (~52%) and car age (~23%) drive the prediction the most. Kms driven adds ~12%.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- FEATURE IMPORTANCE -->
+<div class="fi-section">
+  <div class="sec-title">Feature Importance — Random Forest</div>
+  <div class="fi-grid" id="fi_grid"></div>
+</div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ── Car names list (must match backend CAR_NAMES) ──────────
+const CAR_NAMES = [
+  "Ambassador Classic 1500 DSL BSIII","Audi A4 1.8 TFSI","Audi A4 2.0 TDI 177bhp","Audi A4 2.0 TDI","Audi A6 2.0 TDI","Audi Q3 2.0 TDI quattro","Audi Q5 2.0 TDI","Audi Q7 3.0 TDI","BMW 3 Series 320d Luxury Line","BMW 3 Series 320d Sedan","BMW 5 Series 520d","BMW 7 Series 730Ld","BMW X1 sDrive20d","BMW X5 xDrive30d","Chevrolet Beat Diesel","Chevrolet Beat LT","Chevrolet Cruze LTZ","Chevrolet Enjoy 1.3 LS 7 STR","Chevrolet Optra 1.6","Chevrolet Sail 1.2 Base","Chevrolet Sail UVA 1.2 LS","Chevrolet Spark 1.0","Chevrolet Tavera Neo 3 LS-10 STR BS-III","Datsun GO Plus T","Datsun GO T","Ford EcoSport 1.0 Ecoboost Titanium BSIV","Ford EcoSport 1.5 TDCi Titanium","Ford EcoSport 1.5 Ti-VCT Titanium","Ford Endeavour 2.2 Trend MT 4X2","Ford Figo 1.2 Duratec Titanium","Ford Figo 1.4 Duratorq EXI","Ford Figo Aspire 1.5 TDCi Titanium","Ford Fusion 1.4 TDCi Diesel","Ford Ikon 1.3 Flair","Honda Amaze 1.2 SMT i VTEC","Honda Amaze 1.5 IDTEC V","Honda Brio S(O)MT","Honda City 1.5 EXi","Honda City 1.5 V MT","Honda City 2014-2015 1.5 V MT","Honda City i-DTEC V","Honda CR-V 2.0 AT 2WD","Honda Jazz 1.5 V i DTEC","Honda Jazz 1.2 V i VTEC","Hyundai Accent GLE","Hyundai Creta 1.4 CRDi S","Hyundai Creta 1.6 CRDi SX","Hyundai Creta 1.6 VTVT S","Hyundai EON D-Lite Plus","Hyundai EON Era Plus","Hyundai Elite i20 1.2 Asta (O)","Hyundai Elite i20 1.4 CRDI Asta","Hyundai Grand i10 1.2 CRDi Asta","Hyundai Grand i10 1.2 Kappa Magna","Hyundai Grand i10 1.2 Kappa Sportz","Hyundai i10 Era","Hyundai i10 Magna","Hyundai i10 Sportz","Hyundai i20 1.2 Asta","Hyundai i20 1.4 CRDI Asta","Hyundai i20 Asta 1.4 CRDi 6 Speed","Hyundai Santa Fe 4X4 AT","Hyundai Sonata Transform 2.4 GDi","Hyundai Tucson 2WD AT GL","Hyundai Verna 1.6 CRDi SX","Hyundai Verna 1.6 VTVT S","Hyundai Xcent 1.2 Kappa S","Jaguar XF 2.2 Diesel","Jeep Compass 1.4 Multiair Limited","Land Rover Freelander 2 SE","Mahindra Bolero Power Plus SLX","Mahindra KUV 100 K2","Mahindra Scorpio VLX 2WD Airbag BSIII","Mahindra Scorpio VLX 2WD Airbag BSIV","Mahindra TUV 300 T8","Mahindra XUV500 W10 FWD","Mahindra XUV500 W8 2WD","Maruti 800 AC","Maruti Alto 800 LXI","Maruti Alto LXi","Maruti Baleno Alpha 1.2","Maruti Baleno Delta 1.2","Maruti Celerio VXI","Maruti Ciaz ZXI Plus","Maruti Dzire LXI","Maruti Dzire VXI","Maruti Ertiga VDI","Maruti Ertiga VXI","Maruti Esteem LXi","Maruti Ignis Delta 1.2","Maruti Omni E STD BS-IV","Maruti Ritz VDI BS-IV","Maruti Ritz Vxi","Maruti S-Cross Alpha 1.3","Maruti S-Cross Zeta 1.3","Maruti S-Presso VXI Plus","Maruti Swift Dzire LDI","Maruti Swift Dzire LXI","Maruti Swift Dzire VDI","Maruti Swift Dzire VXI","Maruti Swift LDI","Maruti Swift LXI","Maruti Swift VDI","Maruti Swift VXI","Maruti SX4 Green LXi CNG","Maruti Wagon R LXI","Maruti Wagon R VXI","Maruti Zen Estilo LXI BS-IV","Mercedes-Benz C-Class 220 CDI Avantgarde","Mercedes-Benz CLA 200","Mercedes-Benz E-Class E 200 CGI Avantgarde","Mercedes-Benz GL-Class GL 350 CDI","Mercedes-Benz GLA Class 200 CDI Style","Mercedes-Benz M-Class ML 250 CDI","Mitsubishi Pajero Sport 2.5 MT","Nissan Micra XL","Nissan Sunny XV","Nissan Terrano XL D Plus","Renault Duster 110 PS RXL","Renault KWID 1.0 RXT","Renault KWID RXT","Skoda Octavia Elegance 2.0 TDI AT","Skoda Rapid 1.5 TDI Ambition","Skoda Rapid 1.5 TDI Elegance","Tata Bolt XE Revotron","Tata Nano Genx XT","Tata Nexon XM","Tata Safari Storme EX","Tata Tiago XZ","Tata Tigor XZ","Tata Zest XE 75PS Diesel","Toyota Corolla Altis 1.8 VL AT","Toyota Corolla Altis G","Toyota Etios GD","Toyota Etios Liva GD","Toyota Fortuner 2.8 2WD AT","Toyota Innova 2.0 VX 7 STR BS-IV","Toyota Innova 2.5 VX 7 STR BS3","Volkswagen Cross Polo 1.2 MPI","Volkswagen Polo Comfortline 1.2L","Volkswagen Vento Comfortline Diesel","Volkswagen Vento Diesel Highline"
+];
+
+// ── Car search ────────────────────────────────────────────
+let hlIdx = -1;
+
+function filterCars() {
+  const q = document.getElementById('car_search').value.trim().toLowerCase();
+  const dd = document.getElementById('car_dropdown');
+  hlIdx = -1;
+  if (!q) { dd.classList.remove('open'); return; }
+  const matches = CAR_NAMES.filter(n => n.toLowerCase().includes(q)).slice(0, 18);
+  if (!matches.length) { dd.classList.remove('open'); return; }
+  dd.innerHTML = matches.map((n,i) => {
+    const hi = n.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark>$1</mark>');
+    return `<div class="car-option" data-name="${n}" onclick="selectCar('${n.replace(/'/g,"\\'")}')"><span>${hi}</span></div>`;
+  }).join('');
+  dd.classList.add('open');
+}
+
+function openDropdown() {
+  if (document.getElementById('car_search').value.trim()) filterCars();
+}
+
+function selectCar(name) {
+  document.getElementById('car_name').value  = name;
+  document.getElementById('car_search').value = name;
+  document.getElementById('car_tag').textContent = '✓ ' + name;
+  document.getElementById('car_tag').style.display = 'block';
+  document.getElementById('car_dropdown').classList.remove('open');
+  document.getElementById('result_car_name').textContent = name;
+  document.getElementById('result_car_name').classList.add('filled');
+}
+
+function handleKey(e) {
+  const opts = document.querySelectorAll('.car-option');
+  if (e.key === 'ArrowDown') { hlIdx = Math.min(hlIdx+1, opts.length-1); highlight(opts); }
+  else if (e.key === 'ArrowUp') { hlIdx = Math.max(hlIdx-1, 0); highlight(opts); }
+  else if (e.key === 'Enter' && hlIdx >= 0) { selectCar(opts[hlIdx].dataset.name); }
+  else if (e.key === 'Escape') { document.getElementById('car_dropdown').classList.remove('open'); }
+}
+function highlight(opts) {
+  opts.forEach((o,i) => o.classList.toggle('highlighted', i===hlIdx));
+  if (opts[hlIdx]) opts[hlIdx].scrollIntoView({block:'nearest'});
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.car-search-wrap')) document.getElementById('car_dropdown').classList.remove('open');
+});
+
+// ── Toggle helpers ────────────────────────────────────────
+const tmap = {fuel:'fuel_type', trans:'transmission', seller:'seller_type', owner:'owner'};
+function setT(btn, grp) {
+  btn.closest('.toggle-group').querySelectorAll('.tp').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tmap[grp]).value = btn.textContent.trim();
+}
+
+// ── Year slider ───────────────────────────────────────────
+function updateYear(el) {
+  const yr = parseInt(el.value), age = 2025 - yr;
+  const pct = (yr-2000)/(2024-2000)*100;
+  el.style.background = `linear-gradient(to right,var(--amber) ${pct}%,var(--border) ${pct}%)`;
+  document.getElementById('year_display').innerHTML =
+    `${yr} · <span style="color:var(--text2);font-size:.7rem">Age ${age}</span>`;
+}
+updateYear(document.getElementById('year_slider'));
+
+// ── Predict ───────────────────────────────────────────────
+async function predict() {
+  const carName = document.getElementById('car_name').value;
+  const errEl   = document.getElementById('err_msg');
+  errEl.classList.remove('on');
+
+  if (!carName) {
+    errEl.textContent = '⚠ Please search and select a car name first.';
+    errEl.classList.add('on'); return;
+  }
+
+  const payload = {
+    car_name:      carName,
+    present_price: parseFloat(document.getElementById('present_price').value) || 5.59,
+    kms_driven:    parseInt(document.getElementById('kms_driven').value)       || 27000,
+    year:          parseInt(document.getElementById('year_slider').value),
+    fuel_type:     document.getElementById('fuel_type').value,
+    transmission:  document.getElementById('transmission').value,
+    seller_type:   document.getElementById('seller_type').value,
+    owner:         parseInt(document.getElementById('owner').value),
+  };
+
+  document.getElementById('predict_btn').disabled = true;
+  document.getElementById('spinner').classList.add('on');
+
+  try {
+    const res  = await fetch('/predict', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    displayResult(data);
+  } catch(err) {
+    errEl.textContent = '⚠ ' + err.message;
+    errEl.classList.add('on');
+  } finally {
+    document.getElementById('predict_btn').disabled = false;
+    document.getElementById('spinner').classList.remove('on');
+  }
+}
+
+function displayResult(d) {
+  document.getElementById('price_out').textContent    = 'INR ' + d.predicted_price + ' (100k)';
+  document.getElementById('retention_pct').textContent = d.retention_pct + '%';
+  document.getElementById('retention_bar').style.width = Math.min(d.retention_pct, 100) + '%';
+  document.getElementById('orig_price').textContent   = 'INR ' + d.present_price_display + ' (100k)';
+  document.getElementById('depreciation').textContent = '-' + d.depreciation_pct + '%';
+  document.getElementById('car_age_out').textContent  = d.car_age + ' yrs';
+  document.getElementById('est_range').textContent    = 'INR ' + d.range_low + '–' + d.range_high + ' (100k)';
+  document.getElementById('result_car_name').textContent = d.car_name;
+  document.getElementById('result_car_name').classList.add('filled');
+}
+
+// ── Feature Importance chart ──────────────────────────────
+const features = [
+  {name:'Present Price', pct:52}, {name:'Car Age', pct:23},
+  {name:'Kms Driven', pct:12},    {name:'Fuel Type', pct:6},
+  {name:'Transmission', pct:4},   {name:'Owner Count', pct:2},
+  {name:'Seller Type', pct:1},
+];
+const grid = document.getElementById('fi_grid');
+features.forEach(f => {
+  grid.innerHTML += `<div class="fi-row">
+    <div class="fi-name">${f.name}</div>
+    <div class="fi-bg"><div class="fi-fill" data-p="${f.pct}"></div></div>
+    <div class="fi-pct">${f.pct}%</div>
+  </div>`;
+});
+setTimeout(() => {
+  document.querySelectorAll('.fi-fill').forEach(b => b.style.width = b.dataset.p + '%');
+}, 400);
+</script>
+</body>
+</html>
